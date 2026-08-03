@@ -1,0 +1,9 @@
+.venv/
+__pycache__/
+*.pyc
+.env
+.pytest_cache/
+*.egg-info/
+.ruff_cache/
+notebooks/.ipynb_checkpoints/
+docker/postgres_data/
