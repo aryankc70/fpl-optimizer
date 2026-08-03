@@ -39,27 +39,6 @@ class Gameweek(Base):
     is_current: Mapped[bool] = mapped_column(Boolean, default=False)
     is_finished: Mapped[bool] = mapped_column(Boolean, default=False)
 
-
-class PlayerGameweekStat(Base):
-    __tablename__ = "player_gameweek_stats"
-
-    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    player_id: Mapped[int] = mapped_column(ForeignKey("players.id"))
-    gameweek_id: Mapped[int] = mapped_column(ForeignKey("gameweeks.id"))
-
-    minutes: Mapped[int] = mapped_column(Integer, default=0)
-    total_points: Mapped[int] = mapped_column(Integer, default=0)
-    goals_scored: Mapped[int] = mapped_column(Integer, default=0)
-    assists: Mapped[int] = mapped_column(Integer, default=0)
-    clean_sheets: Mapped[int] = mapped_column(Integer, default=0)
-    expected_goals: Mapped[float] = mapped_column(Float, default=0.0)
-    expected_assists: Mapped[float] = mapped_column(Float, default=0.0)
-    bonus: Mapped[int] = mapped_column(Integer, default=0)
-    value: Mapped[float] = mapped_column(Float)  # player's price at that gameweek
-
-    player: Mapped["Player"] = relationship(back_populates="gameweek_stats")
-
-
 class Fixture(Base):
     __tablename__ = "fixtures"
 
@@ -73,3 +52,23 @@ class Fixture(Base):
     finished: Mapped[bool] = mapped_column(Boolean, default=False)
     team_h_score: Mapped[int | None] = mapped_column(Integer, nullable=True)
     team_a_score: Mapped[int | None] = mapped_column(Integer, nullable=True)
+
+class PlayerGameweekStat(Base):
+    __tablename__ = "player_gameweek_stats"
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    player_id: Mapped[int] = mapped_column(ForeignKey("players.id"))
+    gameweek_id: Mapped[int] = mapped_column(Integer)  # gameweek NUMBER (1-38), not a strict FK — see note below
+    season: Mapped[str] = mapped_column(String(10))  # e.g. "2025-26"
+
+    minutes: Mapped[int] = mapped_column(Integer, default=0)
+    total_points: Mapped[int] = mapped_column(Integer, default=0)
+    goals_scored: Mapped[int] = mapped_column(Integer, default=0)
+    assists: Mapped[int] = mapped_column(Integer, default=0)
+    clean_sheets: Mapped[int] = mapped_column(Integer, default=0)
+    expected_goals: Mapped[float] = mapped_column(Float, default=0.0)
+    expected_assists: Mapped[float] = mapped_column(Float, default=0.0)
+    bonus: Mapped[int] = mapped_column(Integer, default=0)
+    value: Mapped[float] = mapped_column(Float)
+
+    player: Mapped["Player"] = relationship(back_populates="gameweek_stats")
