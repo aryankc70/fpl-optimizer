@@ -1,4 +1,4 @@
-from sqlalchemy import String, Integer, Float, Boolean, ForeignKey, DateTime
+from sqlalchemy import String, Integer, Float, Boolean, ForeignKey, DateTime, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from datetime import datetime
 from fpl_optimizer.db.session import Base
@@ -39,6 +39,7 @@ class Gameweek(Base):
     is_current: Mapped[bool] = mapped_column(Boolean, default=False)
     is_finished: Mapped[bool] = mapped_column(Boolean, default=False)
 
+
 class Fixture(Base):
     __tablename__ = "fixtures"
 
@@ -53,12 +54,13 @@ class Fixture(Base):
     team_h_score: Mapped[int | None] = mapped_column(Integer, nullable=True)
     team_a_score: Mapped[int | None] = mapped_column(Integer, nullable=True)
 
+
 class PlayerGameweekStat(Base):
     __tablename__ = "player_gameweek_stats"
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     player_id: Mapped[int] = mapped_column(ForeignKey("players.id"))
-    gameweek_id: Mapped[int] = mapped_column(Integer)  # gameweek NUMBER (1-38), not a strict FK — see note below
+    gameweek_id: Mapped[int] = mapped_column(Integer)  # gameweek NUMBER (1-38), not a strict FK
     season: Mapped[str] = mapped_column(String(10))  # e.g. "2025-26"
 
     minutes: Mapped[int] = mapped_column(Integer, default=0)
@@ -70,5 +72,9 @@ class PlayerGameweekStat(Base):
     expected_assists: Mapped[float] = mapped_column(Float, default=0.0)
     bonus: Mapped[int] = mapped_column(Integer, default=0)
     value: Mapped[float] = mapped_column(Float)
+
+    __table_args__ = (
+        UniqueConstraint("player_id", "season", "gameweek_id", name="uq_player_season_gw"),
+    )
 
     player: Mapped["Player"] = relationship(back_populates="gameweek_stats")
