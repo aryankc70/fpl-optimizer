@@ -1,3 +1,4 @@
+import unicodedata
 import pandas as pd
 from fpl_optimizer.db.session import SessionLocal
 from fpl_optimizer.db.models import PlayerGameweekStat, Player
@@ -6,14 +7,33 @@ SEASON = "2025-26"
 CSV_URL = f"https://raw.githubusercontent.com/vaastav/Fantasy-Premier-League/master/data/{SEASON}/gws/merged_gw.csv"
 
 RAW_COLS = [
-    "element", "GW", "minutes", "total_points", "goals_scored", "assists",
+    "name", "GW", "minutes", "total_points", "goals_scored", "assists",
     "clean_sheets", "expected_goals", "expected_assists", "bonus", "value",
 ]
 
 
+def normalize_name(name: str) -> str:
+    """
+    Strip accents/diacritics and lowercase, so 'Ødegaard' and 'Odegaard'
+    (or 'Raúl' and 'Raul') match consistently across sources that encode
+    names differently.
+    """
+    nfkd = unicodedata.normalize("NFKD", name)
+    ascii_name = nfkd.encode("ascii", "ignore").decode("ascii")
+    return ascii_name.strip().lower()
+
+
+def build_name_lookup(db) -> dict[str, int]:
+    """Maps normalized 'first last' name -> current player_id."""
+    players = db.query(Player).all()
+    lookup = {}
+    for p in players:
+        full_name = normalize_name(f"{p.first_name} {p.second_name}")
+        lookup[full_name] = p.id
+    return lookup
+
+
 def clean_and_aggregate(df: pd.DataFrame) -> pd.DataFrame:
-    # Keep only the columns we care about, so drop_duplicates checks the
-    # right thing (full-row duplicates on the fields that matter to us)
     available_cols = [c for c in RAW_COLS if c in df.columns]
     df = df[available_cols].copy()
 
@@ -21,9 +41,6 @@ def clean_and_aggregate(df: pd.DataFrame) -> pd.DataFrame:
     df = df.drop_duplicates()
     exact_dupes_removed = before - len(df)
 
-    # Whatever duplicate (element, GW) pairs remain now are GENUINE double
-    # gameweeks — different fixtures with different stats. Sum the additive
-    # stats across fixtures; keep the latest price seen that gameweek.
     agg_funcs = {
         "minutes": "sum",
         "total_points": "sum",
@@ -37,7 +54,7 @@ def clean_and_aggregate(df: pd.DataFrame) -> pd.DataFrame:
     }
     agg_funcs = {k: v for k, v in agg_funcs.items() if k in df.columns}
 
-    grouped = df.groupby(["element", "GW"], as_index=False).agg(agg_funcs)
+    grouped = df.groupby(["name", "GW"], as_index=False).agg(agg_funcs)
 
     dgw_rows_merged = before - exact_dupes_removed - len(grouped)
     print(f"Removed {exact_dupes_removed} exact duplicate rows.")
@@ -53,13 +70,16 @@ def backfill():
 
     db = SessionLocal()
     try:
-        current_player_ids = {p.id for p in db.query(Player.id).all()}
+        name_lookup = build_name_lookup(db)
 
-        loaded, skipped = 0, 0
+        loaded, skipped, unmatched_names = 0, 0, set()
         for _, row in df.iterrows():
-            player_id = int(row["element"])
-            if player_id not in current_player_ids:
+            norm_name = normalize_name(row["name"])
+            player_id = name_lookup.get(norm_name)
+
+            if player_id is None:
                 skipped += 1
+                unmatched_names.add(row["name"])
                 continue
 
             stat = PlayerGameweekStat(
@@ -80,7 +100,11 @@ def backfill():
             loaded += 1
 
         db.commit()
-        print(f"Backfilled {loaded} rows, skipped {skipped} (players not on current roster).")
+        print(f"Backfilled {loaded} rows, skipped {skipped} (name not matched to current roster).")
+        print(f"Unique unmatched player names: {len(unmatched_names)}")
+        if unmatched_names:
+            sample = sorted(unmatched_names)[:15]
+            print(f"Sample unmatched names: {sample}")
     finally:
         db.close()
 

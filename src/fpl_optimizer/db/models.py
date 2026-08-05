@@ -78,3 +78,16 @@ class PlayerGameweekStat(Base):
     )
 
     player: Mapped["Player"] = relationship(back_populates="gameweek_stats")
+
+class PlayerPrediction(Base):
+    __tablename__ = "player_predictions"
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    player_id: Mapped[int] = mapped_column(ForeignKey("players.id"))
+    season: Mapped[str] = mapped_column(String(10))       # season being predicted FOR
+    gameweek_id: Mapped[int] = mapped_column(Integer)      # gameweek being predicted FOR
+    predicted_points: Mapped[float] = mapped_column(Float)
+
+    __table_args__ = (
+        UniqueConstraint("player_id", "season", "gameweek_id", name="uq_prediction_player_season_gw"),
+    )
