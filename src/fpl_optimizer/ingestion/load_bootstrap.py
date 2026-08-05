@@ -13,7 +13,12 @@ def load_teams(db, data: dict):
             team = Team(id=t["id"])
         team.name = t["name"]
         team.short_name = t["short_name"]
-        team.strength = t.get("strength", 0)
+        team.strength_overall_home = t.get("strength_overall_home") or 0
+        team.strength_overall_away = t.get("strength_overall_away") or 0
+        team.strength_attack_home = t.get("strength_attack_home") or 0
+        team.strength_attack_away = t.get("strength_attack_away") or 0
+        team.strength_defence_home = t.get("strength_defence_home") or 0
+        team.strength_defence_away = t.get("strength_defence_away") or 0
         db.add(team)
     db.commit()
     print(f"Loaded {len(data['teams'])} teams.")
@@ -30,6 +35,8 @@ def load_players(db, data: dict):
         player.team_id = p["team"]
         player.position = POSITION_MAP.get(p["element_type"], "UNK")
         player.now_cost = p["now_cost"] / 10  # FPL stores price as tenths (e.g. 105 -> 10.5)
+        player.status = p.get("status", "a")
+        player.chance_of_playing_next_round = p.get("chance_of_playing_next_round")
         db.add(player)
     db.commit()
     print(f"Loaded {len(data['elements'])} players.")

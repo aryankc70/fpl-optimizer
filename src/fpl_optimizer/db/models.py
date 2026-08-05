@@ -7,10 +7,16 @@ from fpl_optimizer.db.session import Base
 class Team(Base):
     __tablename__ = "teams"
 
-    id: Mapped[int] = mapped_column(primary_key=True)  # FPL's own team id
+    id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(String(50))
     short_name: Mapped[str] = mapped_column(String(5))
-    strength: Mapped[int] = mapped_column(Integer, default=0)
+
+    strength_overall_home: Mapped[int] = mapped_column(Integer, default=0)
+    strength_overall_away: Mapped[int] = mapped_column(Integer, default=0)
+    strength_attack_home: Mapped[int] = mapped_column(Integer, default=0)
+    strength_attack_away: Mapped[int] = mapped_column(Integer, default=0)
+    strength_defence_home: Mapped[int] = mapped_column(Integer, default=0)
+    strength_defence_away: Mapped[int] = mapped_column(Integer, default=0)
 
     players: Mapped[list["Player"]] = relationship(back_populates="team")
 
@@ -28,6 +34,9 @@ class Player(Base):
 
     team: Mapped["Team"] = relationship(back_populates="players")
     gameweek_stats: Mapped[list["PlayerGameweekStat"]] = relationship(back_populates="player")
+
+    status: Mapped[str] = mapped_column(String(1), default="a")  # a=available, d=doubtful, i=injured, s=suspended, u=unavailable
+    chance_of_playing_next_round: Mapped[int | None] = mapped_column(Integer, nullable=True)  # 0-100, NULL if fully fit
 
 
 class Gameweek(Base):

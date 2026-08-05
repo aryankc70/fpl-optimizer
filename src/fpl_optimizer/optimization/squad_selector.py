@@ -3,7 +3,7 @@ from ortools.sat.python import cp_model
 from sqlalchemy import text
 from fpl_optimizer.db.session import engine
 
-BUDGET = 1000  # £100.0m stored as tenths, to keep everything in integers (CP-SAT needs int constraints)
+BUDGET = 1000
 SQUAD_SIZE = 15
 POSITION_QUOTAS = {"GKP": 2, "DEF": 5, "MID": 5, "FWD": 3}
 MAX_PER_CLUB = 3
@@ -15,6 +15,8 @@ SELECT
     p.position,
     p.team_id,
     p.now_cost,
+    p.status,
+    p.chance_of_playing_next_round,
     pr.predicted_points
 FROM players p
 JOIN player_predictions pr ON pr.player_id = p.id
@@ -30,63 +32,56 @@ class PlayerRow:
     team_id: int
     cost_tenths: int
     predicted_points: float
+    status: str
+    chance_of_playing: int | None
 
+
+import pandas as pd
 
 def load_candidates() -> list[PlayerRow]:
-    import pandas as pd
     df = pd.read_sql(text(QUERY), engine)
-    return [
-        PlayerRow(
+
+    rows = []
+    for r in df.itertuples():
+        chance = r.chance_of_playing_next_round
+        if pd.isna(chance):
+            chance = 0 if r.status in ("i", "s", "u") else 100
+        availability_multiplier = chance / 100.0
+
+        rows.append(PlayerRow(
             player_id=int(r.player_id),
             web_name=r.web_name,
             position=r.position,
             team_id=int(r.team_id),
             cost_tenths=round(r.now_cost * 10),
-            predicted_points=float(r.predicted_points),
-        )
-        for r in df.itertuples()
-    ]
+            predicted_points=float(r.predicted_points) * availability_multiplier,
+            status=r.status,
+            chance_of_playing=(None if pd.isna(r.chance_of_playing_next_round) else int(r.chance_of_playing_next_round)),        ))
+    return rows
 
 
 def solve_squad(players: list[PlayerRow]) -> list[PlayerRow]:
     model = cp_model.CpModel()
-
-    # One boolean decision variable per player: 1 if selected, 0 if not.
-    # This is the standard "0/1 knapsack-style" ILP formulation.
     picks = {p.player_id: model.NewBoolVar(f"pick_{p.player_id}") for p in players}
 
-    # Constraint: exactly 15 players total
     model.Add(sum(picks.values()) == SQUAD_SIZE)
-
-    # Constraint: budget
     model.Add(sum(picks[p.player_id] * p.cost_tenths for p in players) <= BUDGET)
 
-    # Constraint: position quotas (exact, since FPL squads require exactly these counts)
     for pos, quota in POSITION_QUOTAS.items():
         model.Add(sum(picks[p.player_id] for p in players if p.position == pos) == quota)
 
-    # Constraint: max 3 players from any single club
     team_ids = {p.team_id for p in players}
     for team_id in team_ids:
-        model.Add(
-            sum(picks[p.player_id] for p in players if p.team_id == team_id) <= MAX_PER_CLUB
-        )
+        model.Add(sum(picks[p.player_id] for p in players if p.team_id == team_id) <= MAX_PER_CLUB)
 
-    # Objective: maximize total predicted points.
-    # CP-SAT wants integers, so we scale predicted_points by 1000 to preserve
-    # decimal precision without losing information to rounding.
-    model.Maximize(
-        sum(picks[p.player_id] * round(p.predicted_points * 1000) for p in players)
-    )
+    model.Maximize(sum(picks[p.player_id] * round(p.predicted_points * 1000) for p in players))
 
     solver = cp_model.CpSolver()
     status = solver.Solve(model)
-
     if status not in (cp_model.OPTIMAL, cp_model.FEASIBLE):
         raise RuntimeError("No feasible squad found — constraints may be infeasible.")
 
-    selected = [p for p in players if solver.Value(picks[p.player_id]) == 1]
-    return selected
+    return [p for p in players if solver.Value(picks[p.player_id]) == 1]
 
 
 def print_squad(squad: list[PlayerRow]):
@@ -98,7 +93,8 @@ def print_squad(squad: list[PlayerRow]):
         print(f"-- {pos} --")
         for p in sorted(squad, key=lambda x: -x.predicted_points):
             if p.position == pos:
-                print(f"  {p.web_name:20s} £{p.cost_tenths/10:.1f}m   pred: {p.predicted_points:.2f}")
+                flag = f" [{p.status}, {p.chance_of_playing}%]" if p.status != "a" else ""
+                print(f"  {p.web_name:20s} £{p.cost_tenths/10:.1f}m   pred: {p.predicted_points:.2f}{flag}")
 
 
 if __name__ == "__main__":
