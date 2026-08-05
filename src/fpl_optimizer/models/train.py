@@ -79,6 +79,15 @@ def train():
     joblib.dump(model, MODEL_PATH)
     print(f"Model saved to {MODEL_PATH}")
 
+    importances = sorted(
+        zip(FEATURE_COLS, model.feature_importances_),
+        key=lambda x: x[1],
+        reverse=True,
+    )
+    print("\nFeature importances:")
+    for name, score in importances:
+        print(f"  {name:25s} {score}")
+
     return model, mae, baseline_mae
 
 
