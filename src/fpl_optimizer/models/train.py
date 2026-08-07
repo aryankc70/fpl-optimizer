@@ -18,6 +18,7 @@ FEATURE_COLS = [
     "pos_FWD",
     "pos_GKP",
     "pos_MID",
+    "avg_dc_last_3",
 ]
 
 MODEL_PATH = "models/points_predictor_v1.pkl"

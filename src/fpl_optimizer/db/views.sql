@@ -16,7 +16,9 @@ SELECT
     AVG(s.total_points) OVER w5 AS avg_points_last_5,
     STDDEV(s.total_points) OVER w5 AS std_points_last_5,
 
-    COUNT(*) OVER w5 AS games_in_window_5
+    COUNT(*) OVER w5 AS games_in_window_5,
+
+    AVG(s.defensive_contribution) OVER w3 AS avg_dc_last_3
 FROM player_gameweek_stats s
 WINDOW
     w3 AS (
@@ -32,8 +34,6 @@ WINDOW
 
 CREATE OR REPLACE VIEW team_defensive_form AS
 WITH team_matches AS (
-    -- Unpivot fixtures so each row is "one team's result in one match",
-    -- regardless of whether they played home or away
     SELECT season, gameweek_id, team_h_id AS team_id, team_a_score AS goals_conceded
     FROM historical_fixture_results
     UNION ALL

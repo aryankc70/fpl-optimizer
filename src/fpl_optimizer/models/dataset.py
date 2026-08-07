@@ -16,6 +16,7 @@ SELECT
     v.avg_xa_last_3,
     v.std_points_last_5,
     v.games_in_window_5,
+    v.avg_dc_last_3,
     COALESCE(tdf.avg_goals_conceded_last_3, 1.375) AS team_avg_goals_conceded_last_3,
     v.total_points AS target
 FROM player_rolling_form v
