@@ -2,7 +2,8 @@ import joblib
 import pandas as pd
 from sqlalchemy import text
 from fpl_optimizer.db.session import engine, SessionLocal
-from fpl_optimizer.db.models import PlayerPrediction
+from fpl_optimizer.db.models import PlayerPrediction, Fixture
+from fpl_optimizer.features.clean_sheet_model import estimate_clean_sheet
 
 MODEL_PATH = "models/points_predictor_v1.pkl"
 
@@ -15,6 +16,10 @@ TARGET_GAMEWEEK = 1
 # season-average-strength evidence.
 SHRINKAGE_K = 6
 
+# Fallback expected goals conceded when no fixture/history is available —
+# matches the league-average anchor used in clean_sheet_model.py
+LEAGUE_AVG_GOALS_CONCEDED = 1.375
+
 FEATURE_COLS = [
     "now_cost",
     "avg_points_last_3",
@@ -24,6 +29,7 @@ FEATURE_COLS = [
     "avg_xa_last_3",
     "std_points_last_5",
     "games_in_window_5",
+    "team_avg_goals_conceded_last_3",
     "pos_DEF",
     "pos_FWD",
     "pos_GKP",
@@ -33,6 +39,7 @@ FEATURE_COLS = [
 LATEST_FORM_QUERY = """
 SELECT DISTINCT ON (v.player_id)
     v.player_id,
+    p.team_id,
     p.position,
     p.now_cost,
     v.avg_points_last_3,
@@ -65,11 +72,54 @@ GROUP BY player_id;
 def shrink(recent, season_avg, n_recent, k=SHRINKAGE_K):
     """
     Empirical-Bayes-style shrinkage: blend a small, potentially noisy recent
-    sample with a larger, more stable season-long average. The more recent
-    games we have (n_recent), the more we trust the recent number; the fewer
-    we have, the more we fall back toward the season average.
+    sample with a larger, more stable season-long average.
     """
     return (n_recent * recent + k * season_avg) / (n_recent + k)
+
+
+def get_gw1_opponent(team_id: int) -> tuple[int, bool] | None:
+    """
+    Returns (opponent_team_id, is_home) for a team's TARGET_GAMEWEEK fixture,
+    or None if no fixture is found (e.g. postponed, or data not yet loaded).
+    """
+    db = SessionLocal()
+    try:
+        fixture = (
+            db.query(Fixture)
+            .filter(Fixture.gameweek_id == TARGET_GAMEWEEK)
+            .filter((Fixture.team_h_id == team_id) | (Fixture.team_a_id == team_id))
+            .first()
+        )
+        if fixture is None:
+            return None
+        if fixture.team_h_id == team_id:
+            return fixture.team_a_id, True
+        return fixture.team_h_id, False
+    finally:
+        db.close()
+
+
+def build_team_defense_map(team_ids) -> dict:
+    """
+    Computes each team's expected-goals-conceded for their upcoming fixture
+    using the Poisson clean sheet model, once per unique team (not per
+    player) for efficiency.
+    """
+    team_defense_map = {}
+    for team_id in team_ids:
+        team_id = int(team_id)
+        opponent_info = get_gw1_opponent(team_id)
+        if opponent_info is None:
+            team_defense_map[team_id] = LEAGUE_AVG_GOALS_CONCEDED
+        else:
+            opponent_id, is_home = opponent_info
+            est = estimate_clean_sheet(
+                defending_team_id=team_id,
+                opponent_team_id=opponent_id,
+                defending_team_is_home=is_home,
+            )
+            team_defense_map[team_id] = est.expected_goals_conceded
+    return team_defense_map
 
 
 def generate_predictions():
@@ -80,8 +130,6 @@ def generate_predictions():
 
     df = recent_df.merge(season_df, on="player_id", how="left")
 
-    # Players with no last-season row at all (shouldn't happen given our
-    # earlier check, but guard anyway) fall back to their recent numbers unshrunk
     df["season_avg_points"] = df["season_avg_points"].fillna(df["avg_points_last_5"])
     df["season_avg_minutes"] = df["season_avg_minutes"].fillna(df["avg_minutes_last_3"])
     df["season_avg_xg"] = df["season_avg_xg"].fillna(df["avg_xg_last_3"])
@@ -93,6 +141,12 @@ def generate_predictions():
     df["avg_minutes_last_3"] = shrink(df["avg_minutes_last_3"], df["season_avg_minutes"], n)
     df["avg_xg_last_3"] = shrink(df["avg_xg_last_3"], df["season_avg_xg"], n)
     df["avg_xa_last_3"] = shrink(df["avg_xa_last_3"], df["season_avg_xa"], n)
+
+    # Fixture-aware team defense feature: Poisson-based expected goals
+    # conceded for each team's upcoming GW1 opponent, computed once per team.
+    team_ids = df["team_id"].unique()
+    team_defense_map = build_team_defense_map(team_ids)
+    df["team_avg_goals_conceded_last_3"] = df["team_id"].map(team_defense_map)
 
     df = pd.get_dummies(df, columns=["position"], prefix="pos")
     for col in FEATURE_COLS:
