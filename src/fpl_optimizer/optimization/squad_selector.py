@@ -1,6 +1,8 @@
 from dataclasses import dataclass
+
 from ortools.sat.python import cp_model
 from sqlalchemy import text
+
 from fpl_optimizer.db.session import engine
 
 BUDGET = 1000
@@ -37,6 +39,7 @@ class PlayerRow:
 
 
 import pandas as pd
+
 
 def load_candidates() -> list[PlayerRow]:
     df = pd.read_sql(text(QUERY), engine)

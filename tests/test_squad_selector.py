@@ -1,4 +1,10 @@
-from fpl_optimizer.optimization.squad_selector import PlayerRow, solve_squad, BUDGET, POSITION_QUOTAS, MAX_PER_CLUB
+from fpl_optimizer.optimization.squad_selector import (
+    BUDGET,
+    MAX_PER_CLUB,
+    POSITION_QUOTAS,
+    PlayerRow,
+    solve_squad,
+)
 
 
 def make_candidates():

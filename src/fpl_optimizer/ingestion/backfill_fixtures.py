@@ -1,7 +1,9 @@
 import unicodedata
+
 import pandas as pd
+
+from fpl_optimizer.db.models import HistoricalFixtureResult, Team
 from fpl_optimizer.db.session import SessionLocal
-from fpl_optimizer.db.models import Team, HistoricalFixtureResult
 
 SEASON = "2025-26"
 FIXTURES_URL = f"https://raw.githubusercontent.com/vaastav/Fantasy-Premier-League/master/data/{SEASON}/fixtures.csv"

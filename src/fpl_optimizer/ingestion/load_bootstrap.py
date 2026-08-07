@@ -1,7 +1,8 @@
 from datetime import datetime
-from fpl_optimizer.ingestion.fpl_client import FPLClient
+
+from fpl_optimizer.db.models import Gameweek, Player, Team
 from fpl_optimizer.db.session import SessionLocal
-from fpl_optimizer.db.models import Team, Player, Gameweek
+from fpl_optimizer.ingestion.fpl_client import FPLClient
 
 POSITION_MAP = {1: "GKP", 2: "DEF", 3: "MID", 4: "FWD"}
 
@@ -48,7 +49,7 @@ def load_gameweeks(db, data: dict):
         if gameweek is None:
             gameweek = Gameweek(id=gw["id"])
         gameweek.name = gw["name"]
-        gameweek.deadline_time = datetime.fromisoformat(gw["deadline_time"].replace("Z", "+00:00"))
+        gameweek.deadline_time = datetime.fromisoformat(gw["deadline_time"])
         gameweek.is_current = gw.get("is_current", False)
         gameweek.is_finished = gw.get("finished", False)
         db.add(gameweek)

@@ -1,4 +1,5 @@
 from sqlalchemy import text
+
 from fpl_optimizer.db.session import engine
 
 # Difficulty is 1 (easiest) to 5 (hardest) in FPL's own scale.

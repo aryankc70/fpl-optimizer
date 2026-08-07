@@ -1,7 +1,7 @@
 import joblib
-import numpy as np
 import lightgbm as lgb
 from sklearn.metrics import mean_absolute_error
+
 from fpl_optimizer.models.dataset import load_training_data
 
 FEATURE_COLS = [

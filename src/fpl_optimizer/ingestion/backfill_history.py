@@ -1,7 +1,9 @@
 import unicodedata
+
 import pandas as pd
+
+from fpl_optimizer.db.models import Player, PlayerGameweekStat
 from fpl_optimizer.db.session import SessionLocal
-from fpl_optimizer.db.models import PlayerGameweekStat, Player
 
 SEASON = "2025-26"
 CSV_URL = f"https://raw.githubusercontent.com/vaastav/Fantasy-Premier-League/master/data/{SEASON}/gws/merged_gw.csv"

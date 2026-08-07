@@ -1,8 +1,9 @@
 import joblib
 import pandas as pd
 from sqlalchemy import text
-from fpl_optimizer.db.session import engine, SessionLocal
-from fpl_optimizer.db.models import PlayerPrediction, Fixture
+
+from fpl_optimizer.db.models import Fixture, PlayerPrediction
+from fpl_optimizer.db.session import SessionLocal, engine
 from fpl_optimizer.features.clean_sheet_model import estimate_clean_sheet
 
 MODEL_PATH = "models/points_predictor_v1.pkl"

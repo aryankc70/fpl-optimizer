@@ -1,6 +1,8 @@
 import math
 from dataclasses import dataclass
+
 from sqlalchemy import text
+
 from fpl_optimizer.db.session import engine
 
 # 2025-26 Premier League averaged 2.75 goals per match (1,045 goals / 380 matches),
@@ -74,8 +76,8 @@ def estimate_clean_sheet(defending_team_id: int, opponent_team_id: int, defendin
 
 
 if __name__ == "__main__":
-    from fpl_optimizer.db.session import SessionLocal
     from fpl_optimizer.db.models import Team
+    from fpl_optimizer.db.session import SessionLocal
 
     db = SessionLocal()
     arsenal = db.query(Team).filter_by(name="Arsenal").first()

@@ -1,5 +1,5 @@
-from dataclasses import dataclass
 from ortools.sat.python import cp_model
+
 from fpl_optimizer.optimization.squad_selector import PlayerRow
 
 FORMATION_LIMITS = {

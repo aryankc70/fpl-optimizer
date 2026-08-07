@@ -1,7 +1,9 @@
 from dataclasses import dataclass
+
 from sqlalchemy import text
-from fpl_optimizer.db.session import engine, SessionLocal
+
 from fpl_optimizer.db.models import Player
+from fpl_optimizer.db.session import SessionLocal, engine
 from fpl_optimizer.optimization.multi_gw_projection import project_multi_gw_points
 
 HIT_COST = 4  # standard FPL cost for one extra transfer
@@ -46,6 +48,10 @@ def evaluate_hit(
     try:
         outgoing = db.get(Player, outgoing_player_id)
         incoming = db.get(Player, incoming_player_id)
+
+        if outgoing is None or incoming is None:
+            missing = "outgoing" if outgoing is None else "incoming"
+            raise ValueError(f"Could not find {missing} player (checked ids: {outgoing_player_id}, {incoming_player_id})")
 
         out_base = get_base_prediction(outgoing_player_id, season, start_gw)
         in_base = get_base_prediction(incoming_player_id, season, start_gw)

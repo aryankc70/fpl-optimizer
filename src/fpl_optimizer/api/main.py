@@ -1,15 +1,20 @@
 from fastapi import FastAPI, HTTPException
 from sqlalchemy import text
 
-from fpl_optimizer.db.session import engine
-from fpl_optimizer.optimization.squad_selector import load_candidates, solve_squad
-from fpl_optimizer.optimization.lineup_selector import solve_lineup
-from fpl_optimizer.optimization.hit_advisor import evaluate_hit
-from fpl_optimizer.optimization.chip_calendar import get_current_guidance
 from fpl_optimizer.api.schemas import (
-    PlayerPredictionOut, SquadOut, SquadPlayerOut, LineupOut,
-    HitEvaluationRequest, HitEvaluationOut, ChipGuidanceOut,
+    ChipGuidanceOut,
+    HitEvaluationOut,
+    HitEvaluationRequest,
+    LineupOut,
+    PlayerPredictionOut,
+    SquadOut,
+    SquadPlayerOut,
 )
+from fpl_optimizer.db.session import engine
+from fpl_optimizer.optimization.chip_calendar import get_current_guidance
+from fpl_optimizer.optimization.hit_advisor import evaluate_hit
+from fpl_optimizer.optimization.lineup_selector import solve_lineup
+from fpl_optimizer.optimization.squad_selector import load_candidates, solve_squad
 
 app = FastAPI(title="FPL Optimizer API", version="1.0.0")
 
@@ -111,8 +116,8 @@ def hit_advisor(request: HitEvaluationRequest):
             incoming_player_id=request.incoming_player_id,
             num_hits=request.num_hits,
         )
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
     return HitEvaluationOut(**rec.__dict__)
 
 

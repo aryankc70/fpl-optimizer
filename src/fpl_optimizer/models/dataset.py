@@ -1,5 +1,6 @@
 import pandas as pd
 from sqlalchemy import text
+
 from fpl_optimizer.db.session import engine
 
 QUERY = """

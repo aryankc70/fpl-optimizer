@@ -1,7 +1,8 @@
 from datetime import datetime
-from fpl_optimizer.ingestion.fpl_client import FPLClient
-from fpl_optimizer.db.session import SessionLocal
+
 from fpl_optimizer.db.models import Fixture
+from fpl_optimizer.db.session import SessionLocal
+from fpl_optimizer.ingestion.fpl_client import FPLClient
 
 
 def load_fixtures(db, fixtures: list[dict]):
@@ -22,7 +23,7 @@ def load_fixtures(db, fixtures: list[dict]):
 
         kickoff = f.get("kickoff_time")
         fixture.kickoff_time = (
-            datetime.fromisoformat(kickoff.replace("Z", "+00:00")) if kickoff else None
+            datetime.fromisoformat(kickoff) if kickoff else None
         )
 
         db.add(fixture)
