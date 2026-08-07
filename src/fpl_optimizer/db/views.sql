@@ -29,3 +29,26 @@ WINDOW
         ORDER BY s.season, s.gameweek_id
         ROWS BETWEEN 5 PRECEDING AND 1 PRECEDING
     );
+
+CREATE OR REPLACE VIEW team_defensive_form AS
+WITH team_matches AS (
+    -- Unpivot fixtures so each row is "one team's result in one match",
+    -- regardless of whether they played home or away
+    SELECT season, gameweek_id, team_h_id AS team_id, team_a_score AS goals_conceded
+    FROM historical_fixture_results
+    UNION ALL
+    SELECT season, gameweek_id, team_a_id AS team_id, team_h_score AS goals_conceded
+    FROM historical_fixture_results
+)
+SELECT
+    team_id,
+    season,
+    gameweek_id,
+    goals_conceded,
+    AVG(goals_conceded) OVER (
+        PARTITION BY team_id
+        ORDER BY season, gameweek_id
+        ROWS BETWEEN 3 PRECEDING AND 1 PRECEDING
+    ) AS avg_goals_conceded_last_3,
+    CASE WHEN goals_conceded = 0 THEN 1 ELSE 0 END AS clean_sheet
+FROM team_matches;
