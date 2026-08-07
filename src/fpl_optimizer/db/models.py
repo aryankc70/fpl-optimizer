@@ -104,3 +104,14 @@ class PlayerPrediction(Base):
     __table_args__ = (
         UniqueConstraint("player_id", "season", "gameweek_id", name="uq_prediction_player_season_gw"),
     )
+
+class HistoricalFixtureResult(Base):
+    __tablename__ = "historical_fixture_results"
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    season: Mapped[str] = mapped_column(String(10))
+    gameweek_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    team_h_id: Mapped[int] = mapped_column(ForeignKey("teams.id"))
+    team_a_id: Mapped[int] = mapped_column(ForeignKey("teams.id"))
+    team_h_score: Mapped[int] = mapped_column(Integer)
+    team_a_score: Mapped[int] = mapped_column(Integer)

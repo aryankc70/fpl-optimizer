@@ -1,8 +1,7 @@
 import unicodedata
 import pandas as pd
-from sqlalchemy import text
-from fpl_optimizer.db.session import SessionLocal, engine
-from fpl_optimizer.db.models import Team
+from fpl_optimizer.db.session import SessionLocal
+from fpl_optimizer.db.models import Team, HistoricalFixtureResult
 
 SEASON = "2025-26"
 FIXTURES_URL = f"https://raw.githubusercontent.com/vaastav/Fantasy-Premier-League/master/data/{SEASON}/fixtures.csv"
@@ -68,25 +67,13 @@ def backfill_fixtures():
 
         print(f"Matched {len(rows)} fixtures, {len(unmatched)} unmatched team names: {unmatched}")
 
-        with engine.begin() as conn:
-            conn.execute(text("""
-                CREATE TABLE IF NOT EXISTS historical_fixture_results (
-                    id SERIAL PRIMARY KEY,
-                    season VARCHAR(10),
-                    gameweek_id INTEGER,
-                    team_h_id INTEGER REFERENCES teams(id),
-                    team_a_id INTEGER REFERENCES teams(id),
-                    team_h_score INTEGER,
-                    team_a_score INTEGER
-                );
-            """))
-            conn.execute(text("DELETE FROM historical_fixture_results WHERE season = :season"), {"season": SEASON})
-            for r in rows:
-                conn.execute(text("""
-                    INSERT INTO historical_fixture_results
-                    (season, gameweek_id, team_h_id, team_a_id, team_h_score, team_a_score)
-                    VALUES (:season, :gameweek_id, :team_h_id, :team_a_id, :team_h_score, :team_a_score)
-                """), r)
+        # Clear any existing rows for this season so re-runs stay idempotent,
+        # then insert fresh via the ORM (consistent with every other
+        # ingestion script — no raw SQL / manual table creation).
+        db.query(HistoricalFixtureResult).filter_by(season=SEASON).delete()
+        for r in rows:
+            db.add(HistoricalFixtureResult(**r))
+        db.commit()
 
         print(f"Backfilled {len(rows)} historical fixture results.")
     finally:

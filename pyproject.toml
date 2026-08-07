@@ -17,6 +17,7 @@ dependencies = [
     "scikit-learn>=1.5.0",
     "joblib>=1.4.0",
     "ortools>=9.11",
+    "alembic>=1.13.0",
 ]
 
 [project.optional-dependencies]
