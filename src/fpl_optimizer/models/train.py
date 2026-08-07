@@ -13,6 +13,7 @@ FEATURE_COLS = [
     "avg_xa_last_3",
     "std_points_last_5",
     "games_in_window_5",
+    "team_avg_goals_conceded_last_3",
     "pos_DEF",
     "pos_FWD",
     "pos_GKP",
