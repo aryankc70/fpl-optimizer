@@ -31,6 +31,7 @@ class Player(Base):
     team_id: Mapped[int] = mapped_column(ForeignKey("teams.id"))
     position: Mapped[str] = mapped_column(String(3))  # GKP, DEF, MID, FWD
     now_cost: Mapped[float] = mapped_column(Float)  # in £m
+    
 
     team: Mapped["Team"] = relationship(back_populates="players")
     gameweek_stats: Mapped[list["PlayerGameweekStat"]] = relationship(back_populates="player")
