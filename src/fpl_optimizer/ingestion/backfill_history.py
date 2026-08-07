@@ -9,6 +9,7 @@ CSV_URL = f"https://raw.githubusercontent.com/vaastav/Fantasy-Premier-League/mas
 RAW_COLS = [
     "name", "GW", "minutes", "total_points", "goals_scored", "assists",
     "clean_sheets", "expected_goals", "expected_assists", "bonus", "value",
+    "clearances_blocks_interceptions", "tackles", "recoveries", "defensive_contribution",
 ]
 
 
@@ -50,6 +51,10 @@ def clean_and_aggregate(df: pd.DataFrame) -> pd.DataFrame:
         "expected_goals": "sum",
         "expected_assists": "sum",
         "bonus": "sum",
+        "clearances_blocks_interceptions": "sum",
+        "tackles": "sum",
+        "recoveries": "sum",
+        "defensive_contribution": "sum",
         "value": "last",
     }
     agg_funcs = {k: v for k, v in agg_funcs.items() if k in df.columns}
@@ -95,6 +100,10 @@ def backfill():
                 expected_assists=float(row.get("expected_assists", 0.0) or 0.0),
                 bonus=int(row.get("bonus", 0)),
                 value=float(row.get("value", 0)) / 10,
+                clearances_blocks_interceptions=int(row.get("clearances_blocks_interceptions", 0)),
+                tackles=int(row.get("tackles", 0)),
+                recoveries=int(row.get("recoveries", 0)),
+                defensive_contribution=int(row.get("defensive_contribution", 0)),
             )
             db.add(stat)
             loaded += 1

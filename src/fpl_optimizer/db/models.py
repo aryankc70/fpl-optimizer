@@ -81,6 +81,10 @@ class PlayerGameweekStat(Base):
     expected_assists: Mapped[float] = mapped_column(Float, default=0.0)
     bonus: Mapped[int] = mapped_column(Integer, default=0)
     value: Mapped[float] = mapped_column(Float)
+    clearances_blocks_interceptions: Mapped[int] = mapped_column(Integer, default=0)
+    tackles: Mapped[int] = mapped_column(Integer, default=0)
+    recoveries: Mapped[int] = mapped_column(Integer, default=0)
+    defensive_contribution: Mapped[int] = mapped_column(Integer, default=0)
 
     __table_args__ = (
         UniqueConstraint("player_id", "season", "gameweek_id", name="uq_player_season_gw"),
