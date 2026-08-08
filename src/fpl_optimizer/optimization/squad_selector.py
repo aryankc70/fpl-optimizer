@@ -5,12 +5,14 @@ from sqlalchemy import text
 
 from fpl_optimizer.db.session import engine
 
+from fpl_optimizer.models.predict import get_next_gameweek
+
 BUDGET = 1000
 SQUAD_SIZE = 15
 POSITION_QUOTAS = {"GKP": 2, "DEF": 5, "MID": 5, "FWD": 3}
 MAX_PER_CLUB = 3
 
-QUERY = """
+QUERY_TEMPLATE = """
 SELECT
     p.id AS player_id,
     p.web_name,
@@ -22,7 +24,7 @@ SELECT
     pr.predicted_points
 FROM players p
 JOIN player_predictions pr ON pr.player_id = p.id
-WHERE pr.season = '2026-27' AND pr.gameweek_id = 1;
+WHERE pr.season = :season AND pr.gameweek_id = :gameweek;
 """
 
 
@@ -42,7 +44,11 @@ import pandas as pd
 
 
 def load_candidates() -> list[PlayerRow]:
-    df = pd.read_sql(text(QUERY), engine)
+    season = "2026-27"
+    gameweek = get_next_gameweek(season)
+
+    df = pd.read_sql(text(QUERY_TEMPLATE), engine, params={"season": season, "gameweek": gameweek})
+
 
     rows = []
     for r in df.itertuples():
