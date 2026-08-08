@@ -2,14 +2,11 @@ import joblib
 import pandas as pd
 from sqlalchemy import text
 
-from fpl_optimizer.db.models import Fixture, PlayerPrediction
+from fpl_optimizer.db.models import Fixture, Gameweek, PlayerPrediction
 from fpl_optimizer.db.session import SessionLocal, engine
 from fpl_optimizer.features.clean_sheet_model import estimate_clean_sheet
 
 MODEL_PATH = "models/points_predictor_v1.pkl"
-
-TARGET_SEASON = "2026-27"
-TARGET_GAMEWEEK = 1
 
 SHRINKAGE_K = 6
 LEAGUE_AVG_GOALS_CONCEDED = 1.375
@@ -66,16 +63,36 @@ GROUP BY player_id;
 """
 
 
+def get_next_gameweek(season: str = "2026-27") -> int:  # noqa: ARG001
+    """
+    Finds the next gameweek to predict for: the earliest gameweek that is
+    not yet marked finished. Falls back to GW1 if nothing is marked
+    finished/current yet (start of season, before any results exist).
+    """
+    db = SessionLocal()
+    try:
+        next_gw = (
+            db.query(Gameweek)
+            .filter(Gameweek.is_finished == False)  # noqa: E712
+            .order_by(Gameweek.id)
+            .first()
+        )
+        return next_gw.id if next_gw else 1
+    finally:
+        db.close()
+
+
 def shrink(recent, season_avg, n_recent, k=SHRINKAGE_K):
     return (n_recent * recent + k * season_avg) / (n_recent + k)
 
 
-def get_gw1_opponent(team_id: int) -> tuple[int, bool] | None:
+def get_gameweek_opponent(team_id: int, gameweek_id: int) -> tuple[int, bool] | None:
+    """Returns (opponent_team_id, is_home) for a team's fixture in the given gameweek."""
     db = SessionLocal()
     try:
         fixture = (
             db.query(Fixture)
-            .filter(Fixture.gameweek_id == TARGET_GAMEWEEK)
+            .filter(Fixture.gameweek_id == gameweek_id)
             .filter((Fixture.team_h_id == team_id) | (Fixture.team_a_id == team_id))
             .first()
         )
@@ -88,11 +105,11 @@ def get_gw1_opponent(team_id: int) -> tuple[int, bool] | None:
         db.close()
 
 
-def build_team_defense_map(team_ids) -> dict:
+def build_team_defense_map(team_ids, gameweek_id: int) -> dict:
     team_defense_map = {}
     for team_id in team_ids:
         team_id = int(team_id)
-        opponent_info = get_gw1_opponent(team_id)
+        opponent_info = get_gameweek_opponent(team_id, gameweek_id)
         if opponent_info is None:
             team_defense_map[team_id] = LEAGUE_AVG_GOALS_CONCEDED
         else:
@@ -107,6 +124,9 @@ def build_team_defense_map(team_ids) -> dict:
 
 
 def generate_predictions():
+    target_season = "2026-27"
+    target_gameweek = get_next_gameweek(target_season)
+
     model = joblib.load(MODEL_PATH)
 
     recent_df = pd.read_sql(text(LATEST_FORM_QUERY), engine)
@@ -129,7 +149,7 @@ def generate_predictions():
     df["avg_dc_last_3"] = shrink(df["avg_dc_last_3"], df["season_avg_dc"], n)
 
     team_ids = df["team_id"].unique()
-    team_defense_map = build_team_defense_map(team_ids)
+    team_defense_map = build_team_defense_map(team_ids, target_gameweek)
     df["team_avg_goals_conceded_last_3"] = df["team_id"].map(team_defense_map)
 
     df = pd.get_dummies(df, columns=["position"], prefix="pos")
@@ -142,18 +162,18 @@ def generate_predictions():
     db = SessionLocal()
     try:
         db.query(PlayerPrediction).filter_by(
-            season=TARGET_SEASON, gameweek_id=TARGET_GAMEWEEK
+            season=target_season, gameweek_id=target_gameweek
         ).delete()
 
         for _, row in df.iterrows():
             db.add(PlayerPrediction(
                 player_id=int(row["player_id"]),
-                season=TARGET_SEASON,
-                gameweek_id=TARGET_GAMEWEEK,
+                season=target_season,
+                gameweek_id=target_gameweek,
                 predicted_points=float(row["predicted_points"]),
             ))
         db.commit()
-        print(f"Generated predictions for {len(df)} players (season={TARGET_SEASON}, GW={TARGET_GAMEWEEK}).")
+        print(f"Generated predictions for {len(df)} players (season={target_season}, GW={target_gameweek}).")
     finally:
         db.close()
 
