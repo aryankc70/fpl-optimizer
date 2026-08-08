@@ -12,6 +12,7 @@ COPY src/ ./src/
 COPY alembic.ini ./
 COPY alembic/ ./alembic/
 COPY models/ ./models/
+COPY scripts/ ./scripts/
 
 RUN pip install --no-cache-dir -e .
 
