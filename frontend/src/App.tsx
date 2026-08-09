@@ -1,27 +1,20 @@
-import { useEffect, useState } from 'react';
-import { api } from './api/client';
-import type { PlayerPrediction } from './types/api';
+import { LineupView } from './components/LineupView';
+import { PredictionsTable } from './components/PredictionsTable';
+import { SquadView } from './components/SquadView';
 
 function App() {
-  const [predictions, setPredictions] = useState<PlayerPrediction[]>([]);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    api.getPredictions(1)
-      .then(setPredictions)
-      .catch((e) => setError(e.message));
-  }, []);
-
   return (
-    <div className="min-h-screen p-8" style={{ fontFamily: 'var(--font-display)' }}>
-      <h1 className="text-white text-2xl mb-4">API Connection Test</h1>
-      {error && <p className="text-red-500">Error: {error}</p>}
-      <p className="text-white/70">Loaded {predictions.length} predictions</p>
-      {predictions[0] && (
-        <p className="text-white/50 text-sm mt-2">
-          Top prediction: {predictions[0].web_name} — {predictions[0].predicted_points.toFixed(2)} pts
-        </p>
-      )}
+    <div style={{ fontFamily: 'var(--font-display)' }}>
+      <header className="text-center pt-20 pb-8">
+        <h1 className="text-5xl font-black text-white tracking-tight">
+          FPL <span className="text-[var(--color-mu-red)]">Optimizer</span>
+        </h1>
+        <p className="text-white/40 mt-3">Season-long squad intelligence, powered by ML and ILP</p>
+      </header>
+
+      <PredictionsTable />
+      <SquadView />
+      <LineupView />
     </div>
   );
 }
