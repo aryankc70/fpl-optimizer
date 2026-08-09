@@ -145,3 +145,64 @@ def chip_calendar(gameweek: int):
             for w in windows
         ],
     )
+
+from fpl_optimizer.db.models import UserSquad
+from fpl_optimizer.optimization.transfer_suggester import get_current_squad_ids, suggest_transfers
+from fpl_optimizer.api.schemas import MySquadOut, TransferSuggestionOut
+
+
+@app.get("/my-squad", response_model=MySquadOut)
+def get_my_squad():
+    from fpl_optimizer.db.session import SessionLocal
+    from fpl_optimizer.optimization.squad_selector import load_candidates
+
+    db = SessionLocal()
+    try:
+        squad_state = db.get(UserSquad, 1)
+        if squad_state is None:
+            raise HTTPException(status_code=404, detail="No squad found — run scripts/init_my_squad.py first.")
+    finally:
+        db.close()
+
+    current_ids = get_current_squad_ids()
+    candidates = {p.player_id: p for p in load_candidates()}
+
+    players = [
+        SquadPlayerOut(
+            player_id=pid, web_name=candidates[pid].web_name, position=candidates[pid].position,
+            cost=candidates[pid].cost_tenths / 10, predicted_points=candidates[pid].predicted_points,
+            status=candidates[pid].status,
+        )
+        for pid in current_ids if pid in candidates
+    ]
+
+    return MySquadOut(
+        players=players,
+        free_transfers=squad_state.free_transfers,
+        bank=squad_state.bank,
+        last_updated_gameweek=squad_state.last_updated_gameweek,
+    )
+
+
+@app.get("/my-squad/suggest-transfers", response_model=TransferSuggestionOut)
+def get_transfer_suggestion(max_transfers: int | None = None):
+    try:
+        suggestion = suggest_transfers(max_transfers=max_transfers)
+    except RuntimeError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+    def to_out(p):
+        return SquadPlayerOut(
+            player_id=p.player_id, web_name=p.web_name, position=p.position,
+            cost=p.cost_tenths / 10, predicted_points=p.predicted_points, status=p.status,
+        )
+
+    return TransferSuggestionOut(
+        num_transfers=suggestion.num_transfers,
+        hits_taken=suggestion.hits_taken,
+        hit_cost=suggestion.hit_cost,
+        points_gained=suggestion.points_gained,
+        net_points_gained=suggestion.net_points_gained,
+        transfers_out=[to_out(p) for p in suggestion.transfers_out],
+        transfers_in=[to_out(p) for p in suggestion.transfers_in],
+    )

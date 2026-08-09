@@ -60,3 +60,19 @@ class HitEvaluationOut(BaseModel):
 class ChipGuidanceOut(BaseModel):
     gameweek: int
     windows: list[dict]
+
+class TransferSuggestionOut(BaseModel):
+    num_transfers: int
+    hits_taken: int
+    hit_cost: int
+    points_gained: float
+    net_points_gained: float
+    transfers_out: list[SquadPlayerOut]
+    transfers_in: list[SquadPlayerOut]
+
+
+class MySquadOut(BaseModel):
+    players: list[SquadPlayerOut]
+    free_transfers: int
+    bank: float
+    last_updated_gameweek: int
