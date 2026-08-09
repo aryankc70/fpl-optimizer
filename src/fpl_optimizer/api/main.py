@@ -23,7 +23,7 @@ from fastapi.middleware.cors import CORSMiddleware
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "https://fpl-optimizer-kappa.vercel.app/",  # your Vercel production URL
+        "https://fpl-optimizer-kappa.vercel.app",  # your Vercel production URL
         "http://localhost:5173",  # local dev
     ],
     allow_credentials=True,
