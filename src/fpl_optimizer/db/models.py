@@ -126,3 +126,12 @@ class HistoricalFixtureResult(Base):
     team_a_id: Mapped[int] = mapped_column(ForeignKey("teams.id"))
     team_h_score: Mapped[int] = mapped_column(Integer)
     team_a_score: Mapped[int] = mapped_column(Integer)
+
+class UserSquad(Base):
+    __tablename__ = "user_squad"
+
+    id: Mapped[int] = mapped_column(primary_key=True, default=1)
+    player_ids: Mapped[str] = mapped_column(String(500))  # comma-separated player ids
+    free_transfers: Mapped[int] = mapped_column(Integer, default=1)
+    bank: Mapped[float] = mapped_column(Float, default=0.0)  # leftover budget, in £m
+    last_updated_gameweek: Mapped[int] = mapped_column(Integer, default=1)
