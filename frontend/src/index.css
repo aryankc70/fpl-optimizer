@@ -1,0 +1,6 @@
+@import "./theme.css";
+
+body {
+  background: radial-gradient(ellipse at top, #1a0507 0%, #0A0A0C 60%);
+  min-height: 100vh;
+}

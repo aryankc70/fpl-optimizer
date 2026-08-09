@@ -1,0 +1,22 @@
+@import "tailwindcss";
+
+@theme {
+  --color-mu-red: #DA020E;
+  --color-mu-red-dark: #A30111;
+  --color-mu-black: #0A0A0C;
+  --color-mu-gold: #FBE122;
+
+  --font-display: "Inter", system-ui, sans-serif;
+}
+
+/* Reusable glass panel utility */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.glow-red {
+  box-shadow: 0 0 40px -10px rgba(218, 2, 14, 0.4);
+}
