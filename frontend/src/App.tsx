@@ -1,3 +1,5 @@
+import { ChipCalendarView } from './components/ChipCalendarView';
+import { HitAdvisor } from './components/HitAdvisor';
 import { LineupView } from './components/LineupView';
 import { PredictionsTable } from './components/PredictionsTable';
 import { SquadView } from './components/SquadView';
@@ -15,6 +17,8 @@ function App() {
       <PredictionsTable />
       <SquadView />
       <LineupView />
+      <HitAdvisor />
+      <ChipCalendarView />
     </div>
   );
 }
