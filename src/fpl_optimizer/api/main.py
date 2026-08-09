@@ -18,6 +18,20 @@ from fpl_optimizer.optimization.squad_selector import load_candidates, solve_squ
 
 app = FastAPI(title="FPL Optimizer API", version="1.0.0")
 
+from fastapi.middleware.cors import CORSMiddleware
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "https://fpl-optimizer-kappa.vercel.app/",  # your Vercel production URL
+        "http://localhost:5173",  # local dev
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+
 CURRENT_SEASON = "2026-27"
 
 
