@@ -188,7 +188,7 @@ def apply_transfers() -> TransferSuggestion:
         db.close()
 
 
-def advance_gameweek_no_transfer() -> UserSquad:
+def advance_gameweek_no_transfer() -> dict:
     """
     For weeks where you choose not to act on any suggestion — rolls the
     free transfer forward (capped at 5) and advances the tracked gameweek,
@@ -203,7 +203,14 @@ def advance_gameweek_no_transfer() -> UserSquad:
         squad_state.free_transfers = min(MAX_SAVED_FREE_TRANSFERS, squad_state.free_transfers + 1)
         squad_state.last_updated_gameweek += 1
         db.commit()
-        return squad_state
+
+        # Read values out into plain data BEFORE the session closes — the
+        # ORM object itself becomes unusable once its session is gone.
+        return {
+            "free_transfers": squad_state.free_transfers,
+            "bank": squad_state.bank,
+            "last_updated_gameweek": squad_state.last_updated_gameweek,
+        }
     finally:
         db.close()
 

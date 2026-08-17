@@ -253,6 +253,8 @@ def post_advance_gameweek():
         for pid in current_ids if pid in candidates
     ]
     return MySquadOut(
-        players=players, free_transfers=squad_state.free_transfers,
-        bank=squad_state.bank, last_updated_gameweek=squad_state.last_updated_gameweek,
+        players=players,
+        free_transfers=squad_state["free_transfers"],
+        bank=squad_state["bank"],
+        last_updated_gameweek=squad_state["last_updated_gameweek"],
     )

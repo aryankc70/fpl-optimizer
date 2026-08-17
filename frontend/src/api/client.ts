@@ -24,6 +24,12 @@ export const api = {
   getOptimalLineup: () =>
     fetchJSON<Lineup>('/lineup/optimal'),
 
+  applyTransfers: () =>
+    fetchJSON<TransferSuggestion>('/my-squad/apply-transfers', { method: 'POST' }),
+
+  advanceGameweek: () =>
+    fetchJSON<MySquad>('/my-squad/advance-gameweek', { method: 'POST' }),
+
   evaluateHit: (outgoingId: number, incomingId: number, numHits = 1) =>
     fetchJSON<HitEvaluation>('/hit-advisor', {
       method: 'POST',
