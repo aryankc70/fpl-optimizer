@@ -27,14 +27,14 @@ export function SquadView() {
 
       {squad && (
         <>
-          <div className="glass-panel glow-red rounded-2xl p-6 mb-8 flex gap-8">
+          <div className="glass-panel glow-purple rounded-2xl p-6 mb-8 flex gap-8">
             <div>
               <span className="text-white/40 text-xs uppercase tracking-widest block">Budget Used</span>
               <span className="text-white text-2xl font-black">£{squad.total_cost.toFixed(1)}m</span>
             </div>
             <div>
               <span className="text-white/40 text-xs uppercase tracking-widest block">Predicted Points</span>
-              <span className="text-[var(--color-mu-red)] text-2xl font-black">{squad.total_predicted_points.toFixed(1)}</span>
+              <span className="text-[var(--color-fpl-green)] text-2xl font-black">{squad.total_predicted_points.toFixed(1)}</span>
             </div>
           </div>
 

@@ -3,8 +3,8 @@ import { api } from '../api/client';
 import type { HitEvaluation, PlayerPrediction } from '../types/api';
 
 function recommendationStyle(rec: string) {
-  if (rec.includes('TAKE THE HIT')) return 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30';
-  if (rec.includes('DO NOT')) return 'bg-red-500/20 text-red-300 border-red-500/30';
+  if (rec.includes('TAKE THE HIT')) return 'bg-[var(--color-fpl-green)]/20 text-[var(--color-fpl-green)] border-[var(--color-fpl-green)]/30';
+  if (rec.includes('DO NOT')) return 'bg-fuchsia-500/20 text-fuchsia-300 border-fuchsia-500/30';
   return 'bg-amber-500/20 text-amber-300 border-amber-500/30';
 }
 
@@ -46,7 +46,7 @@ export function HitAdvisor() {
           <div>
             <label className="text-white/50 text-xs uppercase tracking-widest block mb-2">Outgoing</label>
             <select
-              className="w-full bg-black/30 border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm"
+              className="w-full bg-black/30 border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm focus:border-[var(--color-fpl-green)]/50 outline-none"
               value={outgoingId ?? ''}
               onChange={(e) => setOutgoingId(Number(e.target.value) || null)}
             >
@@ -59,7 +59,7 @@ export function HitAdvisor() {
           <div>
             <label className="text-white/50 text-xs uppercase tracking-widest block mb-2">Incoming</label>
             <select
-              className="w-full bg-black/30 border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm"
+              className="w-full bg-black/30 border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm focus:border-[var(--color-fpl-green)]/50 outline-none"
               value={incomingId ?? ''}
               onChange={(e) => setIncomingId(Number(e.target.value) || null)}
             >
@@ -73,20 +73,20 @@ export function HitAdvisor() {
         <button
           onClick={handleEvaluate}
           disabled={outgoingId === null || incomingId === null || loading}
-          className="bg-[var(--color-mu-red)] disabled:opacity-30 disabled:cursor-not-allowed text-white font-bold text-sm px-6 py-2.5 rounded-xl hover:brightness-110 transition"
+          className="bg-[var(--color-fpl-green)] disabled:opacity-30 disabled:cursor-not-allowed text-[var(--color-fpl-purple)] font-bold text-sm px-6 py-2.5 rounded-xl hover:brightness-110 transition"
         >
           {loading ? 'Evaluating...' : 'Evaluate Transfer'}
         </button>
       </div>
 
       {error && (
-        <div className="glass-panel rounded-2xl p-6 border-red-500/30">
-          <p className="text-red-400 text-sm">{error}</p>
+        <div className="glass-panel rounded-2xl p-6 border-fuchsia-500/30">
+          <p className="text-fuchsia-400 text-sm">{error}</p>
         </div>
       )}
 
       {result && (
-        <div className="glass-panel glow-red rounded-2xl p-6">
+        <div className="glass-panel glow-purple rounded-2xl p-6">
           <div className={`inline-block text-xs font-bold px-3 py-1 rounded-full border mb-4 ${recommendationStyle(result.recommendation)}`}>
             {result.recommendation}
           </div>
@@ -103,7 +103,7 @@ export function HitAdvisor() {
             </div>
             <div>
               <span className="text-white/40 text-xs uppercase tracking-widest block">Net (after -{result.hit_cost})</span>
-              <span className={`text-xl font-black ${result.net_gain >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+              <span className={`text-xl font-black ${result.net_gain >= 0 ? 'text-[var(--color-fpl-green)]' : 'text-fuchsia-400'}`}>
                 {result.net_gain >= 0 ? '+' : ''}{result.net_gain.toFixed(1)}
               </span>
             </div>

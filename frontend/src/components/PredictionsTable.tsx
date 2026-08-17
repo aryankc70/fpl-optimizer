@@ -32,8 +32,8 @@ export function PredictionsTable() {
             onClick={() => setFilter(f)}
             className={`px-4 py-1.5 rounded-full text-xs font-bold border transition-colors ${
               filter === f
-                ? 'bg-[var(--color-mu-red)] text-white border-[var(--color-mu-red)]'
-                : 'text-white/50 border-white/10 hover:border-white/30'
+                ? 'bg-[var(--color-fpl-green)] text-[var(--color-fpl-purple)] border-[var(--color-fpl-green)]'
+                : 'text-white/50 border-white/10 hover:border-[var(--color-fpl-green)]/40'
             }`}
           >
             {f}
@@ -58,7 +58,7 @@ export function PredictionsTable() {
                 <span className="text-white/40 text-xs">{p.team_name} · £{p.now_cost.toFixed(1)}m</span>
               </div>
             </div>
-            <span className="text-[var(--color-mu-red)] font-black">{p.predicted_points.toFixed(1)}</span>
+            <span className="text-[var(--color-fpl-green)] font-black">{p.predicted_points.toFixed(1)}</span>
           </div>
         ))}
       </div>

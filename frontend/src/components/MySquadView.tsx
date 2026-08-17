@@ -74,7 +74,7 @@ export function MySquadView() {
 
       {squad && (
         <>
-          <div className="glass-panel glow-red rounded-2xl p-6 mb-8 flex flex-wrap gap-8 items-center">
+          <div className="glass-panel glow-purple rounded-2xl p-6 mb-8 flex flex-wrap gap-8 items-center">
             <div>
               <span className="text-white/40 text-xs uppercase tracking-widest block">Gameweek</span>
               <span className="text-white text-2xl font-black">{squad.last_updated_gameweek}</span>
@@ -91,14 +91,14 @@ export function MySquadView() {
               <button
                 onClick={skipWeek}
                 disabled={applying || checking}
-                className="border border-white/20 disabled:opacity-30 text-white font-bold text-sm px-5 py-2.5 rounded-xl hover:border-white/40 transition"
+                className="border border-white/20 disabled:opacity-30 text-white font-bold text-sm px-5 py-2.5 rounded-xl hover:border-[var(--color-fpl-green)]/40 transition"
               >
                 Skip Week
               </button>
               <button
                 onClick={checkTransfers}
                 disabled={checking || applying}
-                className="bg-[var(--color-mu-red)] disabled:opacity-30 text-white font-bold text-sm px-6 py-2.5 rounded-xl hover:brightness-110 transition"
+                className="bg-[var(--color-fpl-green)] disabled:opacity-30 text-[var(--color-fpl-purple)] font-bold text-sm px-6 py-2.5 rounded-xl hover:brightness-110 transition"
               >
                 {checking ? 'Checking...' : 'Check for Transfers'}
               </button>
@@ -107,14 +107,14 @@ export function MySquadView() {
 
           {confirmMsg && (
             <div className="glass-panel rounded-2xl p-4 mb-6">
-              <p className="text-emerald-300 text-sm font-semibold">{confirmMsg}</p>
+              <p className="text-[var(--color-fpl-green)] text-sm font-semibold">{confirmMsg}</p>
             </div>
           )}
 
           {suggestion && (
             <div className="glass-panel rounded-2xl p-6 mb-8">
               {suggestion.num_transfers === 0 ? (
-                <p className="text-emerald-300 text-sm font-semibold">No changes recommended — your squad is already optimal within your transfer budget.</p>
+                <p className="text-[var(--color-fpl-green)] text-sm font-semibold">No changes recommended — your squad is already optimal within your transfer budget.</p>
               ) : (
                 <>
                   <p className="text-white font-semibold mb-4">
@@ -123,18 +123,18 @@ export function MySquadView() {
                   </p>
                   {suggestion.transfers_out.map((out, i) => (
                     <div key={out.player_id} className="flex items-center gap-3 text-sm mb-2">
-                      <span className="text-red-400">{out.web_name}</span>
+                      <span className="text-fuchsia-400">{out.web_name}</span>
                       <span className="text-white/30">→</span>
-                      <span className="text-emerald-400">{suggestion.transfers_in[i]?.web_name}</span>
+                      <span className="text-[var(--color-fpl-green)]">{suggestion.transfers_in[i]?.web_name}</span>
                     </div>
                   ))}
-                  <p className={`text-sm font-bold mt-3 mb-4 ${suggestion.net_points_gained >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                  <p className={`text-sm font-bold mt-3 mb-4 ${suggestion.net_points_gained >= 0 ? 'text-[var(--color-fpl-green)]' : 'text-fuchsia-400'}`}>
                     Net gain: {suggestion.net_points_gained >= 0 ? '+' : ''}{suggestion.net_points_gained.toFixed(1)} pts
                   </p>
                   <button
                     onClick={applyTransfers}
                     disabled={applying}
-                    className="bg-emerald-600 disabled:opacity-30 text-white font-bold text-sm px-6 py-2.5 rounded-xl hover:brightness-110 transition"
+                    className="bg-[var(--color-fpl-green)] disabled:opacity-30 text-[var(--color-fpl-purple)] font-bold text-sm px-6 py-2.5 rounded-xl hover:brightness-110 transition"
                   >
                     {applying ? 'Applying...' : 'Apply These Transfers'}
                   </button>

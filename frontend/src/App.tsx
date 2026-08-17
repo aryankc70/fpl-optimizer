@@ -1,22 +1,28 @@
+import { ChipCalendarView } from './components/ChipCalendarView';
+import { HitAdvisor } from './components/HitAdvisor';
+import { LineupView } from './components/LineupView';
+import { MySquadView } from './components/MySquadView';
+import { PredictionsTable } from './components/PredictionsTable';
+import { SquadView } from './components/SquadView';
+
 function App() {
   return (
-    <div className="min-h-screen flex items-center justify-center p-8" style={{ fontFamily: 'var(--font-display)' }}>
-      <div className="glass-panel glow-green rounded-3xl p-8 max-w-sm w-full">
-        <div className="flex items-center justify-between mb-6">
-          <span className="text-xs uppercase tracking-widest text-white/50">Gameweek 1</span>
-          <span className="bg-[var(--color-fpl-green)] text-[var(--color-fpl-purple)] text-xs font-black px-3 py-1 rounded-full">
-            LIVE
-          </span>
-        </div>
-        <h1 className="text-4xl font-extrabold text-white mb-1">Erling Haaland</h1>
-        <p className="text-white/50 text-sm mb-6">Manchester City · FWD</p>
-        <div className="flex items-baseline gap-2">
-          <span className="text-5xl font-black text-[var(--color-fpl-green)]">6.2</span>
-          <span className="text-white/40 text-sm">predicted pts</span>
-        </div>
-      </div>
+    <div style={{ fontFamily: 'var(--font-display)' }}>
+      <header className="text-center pt-20 pb-8">
+        <h1 className="text-5xl font-black text-white tracking-tight">
+          FPL <span className="text-[var(--color-fpl-green)]">Optimizer</span>
+        </h1>
+        <p className="text-white/40 mt-3">Season-long squad intelligence, powered by ML and ILP</p>
+      </header>
+
+      <PredictionsTable />
+      <MySquadView />
+      <SquadView />
+      <LineupView />
+      <HitAdvisor />
+      <ChipCalendarView />
     </div>
-  )
+  );
 }
 
-export default App
+export default App;

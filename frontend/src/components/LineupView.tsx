@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { api } from '../api/client';
 import type { Lineup } from '../types/api';
 import { PlayerCard } from './PlayerCard';
+import { PitchView } from './PitchView';
 
 const POSITION_ORDER = ['GKP', 'DEF', 'MID', 'FWD'] as const;
 
@@ -27,44 +28,20 @@ export function LineupView() {
 
       {lineup && (
         <>
-          <div className="glass-panel glow-red rounded-2xl p-6 mb-8 flex gap-8">
+          <div className="glass-panel glow-purple rounded-2xl p-6 mb-8 flex gap-8">
             <div>
               <span className="text-white/40 text-xs uppercase tracking-widest block">Formation</span>
               <span className="text-white text-2xl font-black">{lineup.formation}</span>
             </div>
             <div>
               <span className="text-white/40 text-xs uppercase tracking-widest block">With Captain</span>
-              <span className="text-[var(--color-mu-red)] text-2xl font-black">{lineup.points_with_captain.toFixed(1)}</span>
+              <span className="text-[var(--color-fpl-green)] text-2xl font-black">{lineup.points_with_captain.toFixed(1)}</span>
             </div>
           </div>
 
-          {POSITION_ORDER.map((pos) => {
-            const players = lineup.starting_xi.filter((p) => p.position === pos);
-            if (players.length === 0) return null;
-            return (
-              <div key={pos} className="mb-6">
-                <h3 className="text-white/50 text-xs uppercase tracking-widest mb-3">{pos}</h3>
-                <div className="grid gap-3 sm:grid-cols-2">
-                  {players
-                    .sort((a, b) => b.predicted_points - a.predicted_points)
-                    .map((p) => (
-                      <PlayerCard
-                        key={p.player_id}
-                        webName={p.web_name}
-                        position={p.position}
-                        cost={p.cost}
-                        predictedPoints={p.predicted_points}
-                        badge={
-                          p.player_id === lineup.captain.player_id ? 'C'
-                          : p.player_id === lineup.vice_captain.player_id ? 'VC'
-                          : undefined
-                        }
-                      />
-                    ))}
-                </div>
-              </div>
-            );
-          })}
+          <div className="mb-8">
+            <PitchView lineup={lineup} />
+          </div>
 
           <h3 className="text-white/50 text-xs uppercase tracking-widest mb-3 mt-8">Bench</h3>
           <div className="grid gap-3 sm:grid-cols-2">

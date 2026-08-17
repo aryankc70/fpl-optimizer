@@ -29,7 +29,7 @@ export function ChipCalendarView() {
           max={38}
           value={gameweek}
           onChange={(e) => setGameweek(Number(e.target.value))}
-          className="w-full accent-[var(--color-mu-red)]"
+          className="w-full accent-[var(--color-fpl-green)]"
         />
         <div className="flex justify-between text-white/30 text-xs mt-1">
           <span>GW1</span>
@@ -48,7 +48,7 @@ export function ChipCalendarView() {
       {guidance && guidance.windows.map((w, i) => (
         <div key={i} className="glass-panel rounded-2xl p-6 mb-4">
           <div className="flex items-center gap-3 mb-3">
-            <span className="bg-[var(--color-mu-red)]/20 text-red-300 border border-[var(--color-mu-red)]/30 text-xs font-bold px-3 py-1 rounded-full">
+            <span className="bg-[var(--color-fpl-green)]/15 text-[var(--color-fpl-green)] border border-[var(--color-fpl-green)]/30 text-xs font-bold px-3 py-1 rounded-full">
               {w.phase}
             </span>
             <span className="text-white font-semibold">{w.focus}</span>

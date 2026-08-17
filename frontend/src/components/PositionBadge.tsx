@@ -1,8 +1,8 @@
 const POSITION_STYLES: Record<string, string> = {
   GKP: 'bg-amber-500/20 text-amber-300 border-amber-500/30',
-  DEF: 'bg-blue-500/20 text-blue-300 border-blue-500/30',
-  MID: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30',
-  FWD: 'bg-[var(--color-mu-red)]/20 text-red-300 border-[var(--color-mu-red)]/30',
+  DEF: 'bg-sky-500/20 text-sky-300 border-sky-500/30',
+  MID: 'bg-[var(--color-fpl-green)]/15 text-[var(--color-fpl-green)] border-[var(--color-fpl-green)]/30',
+  FWD: 'bg-fuchsia-500/20 text-fuchsia-300 border-fuchsia-500/30',
 };
 
 export function PositionBadge({ position }: { position: string }) {
