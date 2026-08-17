@@ -1,4 +1,4 @@
-import type { ChipGuidance, HitEvaluation, Lineup, PlayerPrediction, Squad } from '../types/api';
+import type { ChipGuidance, HitEvaluation, Lineup, MySquad, PlayerPrediction, Squad, TransferSuggestion } from '../types/api';
 
 const BASE_URL = import.meta.env.VITE_API_URL || '/api';
 
@@ -37,4 +37,10 @@ export const api = {
 
   getChipCalendar: (gameweek: number) =>
     fetchJSON<ChipGuidance>(`/chip-calendar/${gameweek}`),
+
+  getMySquad: () =>
+    fetchJSON<MySquad>('/my-squad'),
+
+  getSuggestedTransfers: (maxTransfers?: number) =>
+    fetchJSON<TransferSuggestion>(`/my-squad/suggest-transfers${maxTransfers ? `?max_transfers=${maxTransfers}` : ''}`),
 };

@@ -9,6 +9,7 @@ from fpl_optimizer.optimization.squad_selector import (
 )
 
 HIT_COST = 4
+MAX_SAVED_FREE_TRANSFERS = 5
 
 
 @dataclass
@@ -143,6 +144,68 @@ def print_suggestion(suggestion: TransferSuggestion):
 
     print(f"\nPredicted points gained: {suggestion.points_gained:+.2f}")
     print(f"Net gain after hit cost: {suggestion.net_points_gained:+.2f}")
+
+
+
+def apply_transfers() -> TransferSuggestion:
+    """
+    Recomputes the current best transfer suggestion server-side (never trusts
+    a client-supplied plan, since predictions/squad could have changed) and
+    commits it to UserSquad: new player list, updated bank, and free
+    transfers rolled forward per the real FPL rule (unused transfers carry
+    over, capped at 5; hits don't consume saved transfers, they cost points).
+    """
+    suggestion = suggest_transfers()
+
+    db = SessionLocal()
+    try:
+        squad_state = db.get(UserSquad, 1)
+        if squad_state is None:
+            raise RuntimeError("No squad found — run scripts/init_my_squad.py first.")
+
+        new_player_ids = ",".join(str(p.player_id) for p in suggestion.new_squad)
+        new_total_cost = sum(p.cost_tenths for p in suggestion.new_squad) / 10
+
+        old_squad_cost = sum(
+            p.cost_tenths for p in load_candidates() if p.player_id in {int(x) for x in squad_state.player_ids.split(",")}
+        ) / 10
+        available_budget = old_squad_cost + squad_state.bank
+        new_bank = round(available_budget - new_total_cost, 1)
+
+        transfers_using_free = min(suggestion.num_transfers, squad_state.free_transfers)
+        remaining_ft_stock = squad_state.free_transfers - transfers_using_free
+        next_free_transfers = min(MAX_SAVED_FREE_TRANSFERS, remaining_ft_stock + 1)
+
+        squad_state.player_ids = new_player_ids
+        squad_state.bank = new_bank
+        squad_state.free_transfers = next_free_transfers
+        squad_state.last_updated_gameweek += 1
+        db.commit()
+
+        print(f"Applied {suggestion.num_transfers} transfer(s). New bank: £{new_bank}m, free transfers: {next_free_transfers}")
+        return suggestion
+    finally:
+        db.close()
+
+
+def advance_gameweek_no_transfer() -> UserSquad:
+    """
+    For weeks where you choose not to act on any suggestion — rolls the
+    free transfer forward (capped at 5) and advances the tracked gameweek,
+    without changing the squad itself.
+    """
+    db = SessionLocal()
+    try:
+        squad_state = db.get(UserSquad, 1)
+        if squad_state is None:
+            raise RuntimeError("No squad found — run scripts/init_my_squad.py first.")
+
+        squad_state.free_transfers = min(MAX_SAVED_FREE_TRANSFERS, squad_state.free_transfers + 1)
+        squad_state.last_updated_gameweek += 1
+        db.commit()
+        return squad_state
+    finally:
+        db.close()
 
 
 if __name__ == "__main__":

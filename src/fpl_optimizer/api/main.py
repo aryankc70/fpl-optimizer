@@ -15,6 +15,9 @@ from fpl_optimizer.optimization.chip_calendar import get_current_guidance
 from fpl_optimizer.optimization.hit_advisor import evaluate_hit
 from fpl_optimizer.optimization.lineup_selector import solve_lineup
 from fpl_optimizer.optimization.squad_selector import load_candidates, solve_squad
+from fpl_optimizer.optimization.transfer_suggester import (
+    advance_gameweek_no_transfer, apply_transfers, get_current_squad_ids, suggest_transfers,
+)
 
 app = FastAPI(title="FPL Optimizer API", version="1.0.0")
 
@@ -205,4 +208,51 @@ def get_transfer_suggestion(max_transfers: int | None = None):
         net_points_gained=suggestion.net_points_gained,
         transfers_out=[to_out(p) for p in suggestion.transfers_out],
         transfers_in=[to_out(p) for p in suggestion.transfers_in],
+    )
+
+
+@app.post("/my-squad/apply-transfers", response_model=TransferSuggestionOut)
+def post_apply_transfers():
+    try:
+        suggestion = apply_transfers()
+    except RuntimeError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+    def to_out(p):
+        return SquadPlayerOut(
+            player_id=p.player_id, web_name=p.web_name, position=p.position,
+            cost=p.cost_tenths / 10, predicted_points=p.predicted_points, status=p.status,
+        )
+
+    return TransferSuggestionOut(
+        num_transfers=suggestion.num_transfers,
+        hits_taken=suggestion.hits_taken,
+        hit_cost=suggestion.hit_cost,
+        points_gained=suggestion.points_gained,
+        net_points_gained=suggestion.net_points_gained,
+        transfers_out=[to_out(p) for p in suggestion.transfers_out],
+        transfers_in=[to_out(p) for p in suggestion.transfers_in],
+    )
+
+
+@app.post("/my-squad/advance-gameweek", response_model=MySquadOut)
+def post_advance_gameweek():
+    try:
+        squad_state = advance_gameweek_no_transfer()
+    except RuntimeError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+    current_ids = get_current_squad_ids()
+    candidates = {p.player_id: p for p in load_candidates()}
+    players = [
+        SquadPlayerOut(
+            player_id=pid, web_name=candidates[pid].web_name, position=candidates[pid].position,
+            cost=candidates[pid].cost_tenths / 10, predicted_points=candidates[pid].predicted_points,
+            status=candidates[pid].status,
+        )
+        for pid in current_ids if pid in candidates
+    ]
+    return MySquadOut(
+        players=players, free_transfers=squad_state.free_transfers,
+        bank=squad_state.bank, last_updated_gameweek=squad_state.last_updated_gameweek,
     )

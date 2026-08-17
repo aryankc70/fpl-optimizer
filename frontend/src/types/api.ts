@@ -49,3 +49,20 @@ export interface ChipGuidance {
   gameweek: number;
   windows: { phase: string; focus: string; guidance: string }[];
 }
+
+export interface MySquad {
+  players: SquadPlayer[];
+  free_transfers: number;
+  bank: number;
+  last_updated_gameweek: number;
+}
+
+export interface TransferSuggestion {
+  num_transfers: number;
+  hits_taken: number;
+  hit_cost: number;
+  points_gained: number;
+  net_points_gained: number;
+  transfers_out: SquadPlayer[];
+  transfers_in: SquadPlayer[];
+}

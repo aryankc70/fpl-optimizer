@@ -3,6 +3,8 @@ import { HitAdvisor } from './components/HitAdvisor';
 import { LineupView } from './components/LineupView';
 import { PredictionsTable } from './components/PredictionsTable';
 import { SquadView } from './components/SquadView';
+import { MySquadView } from './components/MySquadView';
+
 
 function App() {
   return (
@@ -15,6 +17,7 @@ function App() {
       </header>
 
       <PredictionsTable />
+      <MySquadView />
       <SquadView />
       <LineupView />
       <HitAdvisor />
