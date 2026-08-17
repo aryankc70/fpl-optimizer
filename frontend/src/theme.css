@@ -1,22 +1,27 @@
 @import "tailwindcss";
 
 @theme {
-  --color-mu-red: #DA020E;
-  --color-mu-red-dark: #A30111;
-  --color-mu-black: #0A0A0C;
-  --color-mu-gold: #FBE122;
+  --color-fpl-purple: #37003C;
+  --color-fpl-purple-light: #5C0F63;
+  --color-fpl-green: #00FF87;
+  --color-fpl-green-dark: #00CC6C;
+  --color-bg-base: #0A0612;
+  --color-bg-card: #150B1F;
 
   --font-display: "Inter", system-ui, sans-serif;
 }
 
-/* Reusable glass panel utility */
 .glass-panel {
-  background: rgba(255, 255, 255, 0.04);
+  background: rgba(55, 0, 60, 0.25);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-.glow-red {
-  box-shadow: 0 0 40px -10px rgba(218, 2, 14, 0.4);
+.glow-green {
+  box-shadow: 0 0 40px -10px rgba(0, 255, 135, 0.25);
+}
+
+.glow-purple {
+  box-shadow: 0 0 50px -15px rgba(92, 15, 99, 0.5);
 }

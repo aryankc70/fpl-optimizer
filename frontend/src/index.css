@@ -1,6 +1,9 @@
 @import "./theme.css";
 
 body {
-  background: radial-gradient(ellipse at top, #1a0507 0%, #0A0A0C 60%);
+  background:
+    radial-gradient(ellipse at top left, rgba(55, 0, 60, 0.4) 0%, transparent 50%),
+    radial-gradient(ellipse at bottom right, rgba(0, 255, 135, 0.05) 0%, transparent 50%),
+    #0A0612;
   min-height: 100vh;
 }
