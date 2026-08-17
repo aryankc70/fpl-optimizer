@@ -4,7 +4,7 @@ import type { Lineup } from '../types/api';
 import { PlayerCard } from './PlayerCard';
 import { PitchView } from './PitchView';
 
-const POSITION_ORDER = ['GKP', 'DEF', 'MID', 'FWD'] as const;
+
 
 export function LineupView() {
   const [lineup, setLineup] = useState<Lineup | null>(null);
